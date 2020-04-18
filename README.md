@@ -15,7 +15,7 @@ INeoClient client = new NeoClient(
 client.Connect();
 ```
 
-For example, if you were using any IOC container, you could register the client like so:
+For example, if you were using any IoC container, you could register the client like so:
 ```c#
 container.Register<INeoClient>((c, p) =>
 {
