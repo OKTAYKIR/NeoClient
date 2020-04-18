@@ -1,4 +1,6 @@
+![CI](https://github.com/OKTAYKIR/NeoClient/workflows/CI/badge.svg?branch=master)
 # NeoClient
+
 A Lightweight and simple .Net Core micro object graph mapper (OGM) for Neo4j which support BOLT protocol.
 
 ## Usage
