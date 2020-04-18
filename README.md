@@ -67,7 +67,7 @@ IList<TNode> nodes = client.GetByProperty<TNode>("uuid", "01a68df3-cc35-4eb0-a19
 IList<TNode> nodes = client.GetByProperties<TNode>(
   new Dictionary<string, object>() 
   {
-      { "type", UserNode" },
+      { "type", "TNode" },
       { "userID", "01a68df3-cc35-4eb0-a199-0d924da86eab"}
   };
 );
@@ -102,7 +102,6 @@ client.Drop("01a68df3-cc35-4eb0-a199-0d924da86eab");
 ```
 
 ### Drop Nodes by Properties
-Creating a node with its properties on creation time. If the nodes had already been found, different multiple properties would have been set.
 ```c#
 bool result = client.DropByProperties<TNode>(
     props: new Dictionary<string, object>()
@@ -145,7 +144,6 @@ TNode node = client.Merge(
 ```
 
 ### Merge Relationships
-Creating a node with its properties on creation time. If the nodes had already been found, different multiple properties would have been set.
 ```c#
 bool result = client.MergeRelationship(
     uuidFrom: "2ac55031-3089-453a-a858-e1a9a8b68a16",
@@ -185,6 +183,7 @@ IList<TNode> result = client.RunCustomQuery<TNode>(
 
 ## To Do
 * Nuget package 
+* Tests
 
 ## Contributing
 1. Fork it ( https://github.com/OKTAYKIR/NeoClient/fork )
