@@ -179,6 +179,9 @@ IList<TNode> result = client.RunCustomQuery<TNode>(
 
 ## Transactions
 
+## To Do
+* Nuget package 
+
 ## Contributing
 1. Fork it ( https://github.com/OKTAYKIR/NeoClient/fork )
 2. Create your feature branch (`git checkout -b my-new-feature`)
