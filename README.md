@@ -186,7 +186,7 @@ IList<TNode> result = client.RunCustomQuery<TNode>(
 ## To Do
 * Nuget package 
 * Tests
-* Examples
+* Example Projects
 
 ## Contributing
 1. Fork it ( https://github.com/OKTAYKIR/NeoClient/fork )
