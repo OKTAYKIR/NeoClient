@@ -1,3 +1,5 @@
+<img src="icon/NeoClient.png" width="440" alt="NeoClient logo"/>
+
 ![CI](https://github.com/OKTAYKIR/NeoClient/workflows/CI/badge.svg?branch=master)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](#contributing)
 
