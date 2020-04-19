@@ -5,7 +5,7 @@
 ![Build Status](https://github.com/OKTAYKIR/NeoClient/workflows/CI/badge.svg?branch=master) 
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](#contributing)
 
-A Lightweight and simple .Net Core micro object graph mapper (OGM) for Neo4j which support BOLT protocol.
+A Lightweight and simple micro object graph mapper (OGM) for [Neo4j](https://neo4j.com) which support BOLT protocol.
 
 ## Usage
 
