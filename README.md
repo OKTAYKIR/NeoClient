@@ -191,7 +191,7 @@ IList<TNode> result = client.RunCustomQuery<TNode>(
 ## Transactions
 
 ## To Do
-* Nuget package 
+* ~~Nuget package~~ 
 * Tests
 * Example Projects
 
