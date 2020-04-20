@@ -1,9 +1,9 @@
 <img src="icon/NeoClient.png" width="440" alt="NeoClient logo"/>
 
 # NeoClient
-
 ![Build Status](https://github.com/OKTAYKIR/NeoClient/workflows/CI/badge.svg?branch=master) 
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](#contributing)
+[![nuget](https://img.shields.io/nuget/v/NeoClient)](https://www.nuget.org/packages/NeoClient/)
 
 A Lightweight and simple micro object graph mapper (OGM) for [Neo4j](https://neo4j.com) which support BOLT protocol.
 
