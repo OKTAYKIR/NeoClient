@@ -2,7 +2,6 @@
 using Neo4j.Driver.V1;
 using NeoClient.Attributes;
 using NeoClient.Extensions;
-using NeoClient.Externsions;
 using NeoClient.Templates;
 using NeoClient.TransactionManager;
 using NeoClient.Utilities;

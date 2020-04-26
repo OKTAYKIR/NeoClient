@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace NeoClient.Externsions
+namespace NeoClient.Extensions
 {
     public static class DateTimeExtensions
     {

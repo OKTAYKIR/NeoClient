@@ -2,9 +2,9 @@
 using System.Dynamic;
 using System.Text;
 
-namespace NeoClient.Externsions
+namespace NeoClient.Extensions
 {
-    public static class CollectionExtentions
+    public static class CollectionExtensions
     {
         internal static dynamic AsQueryClause(this Dictionary<string, object> source)
         {
