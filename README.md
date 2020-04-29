@@ -5,7 +5,7 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](#contributing)
 [![nuget](https://img.shields.io/nuget/v/NeoClient)](https://www.nuget.org/packages/NeoClient/)
 
-A Lightweight and simple micro object graph mapper (OGM) for [Neo4j](https://neo4j.com) which support transactions and BOLT protocol.
+A Lightweight and simple object graph mapper (OGM) for [Neo4j](https://neo4j.com) which support transactions and BOLT protocol.
 
 ## Installation
 NeoClient is available on [NuGet](https://www.nuget.org/packages/NeoClient/). 
