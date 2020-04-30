@@ -7,7 +7,7 @@
 
 A Lightweight and simple object graph mapper (OGM) for [Neo4j](https://neo4j.com) which support transactions and BOLT protocol.
 
-## Installation
+## :package: Installation
 NeoClient is available on [NuGet](https://www.nuget.org/packages/NeoClient/). 
 
 ```sh
