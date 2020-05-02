@@ -776,6 +776,13 @@ namespace NeoClient
             return result.Summary.Counters.LabelsAdded == 1;
         }
 
+        public bool Ping()
+        {
+            IStatementResult result = ExecuteQuery("RETURN 1");
+
+            return result.FirstOrDefault()?[0].As<int>() == 1;
+        }
+
         #region Commented Methods
         //public List<T2> GetRelatedNodesByID<T, T2>(int id) where T : EntityBase, new()
         //                                                   where T2 : EntityBase, new()
