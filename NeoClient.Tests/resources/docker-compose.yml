@@ -1,0 +1,20 @@
+version: '3'
+
+networks:
+  neo4j-network:
+    driver: bridge
+    
+services:
+  neo4j:
+      image: neo4j
+      restart: unless-stopped
+      ports: 
+        - 7474:7474
+        - 6477:6477
+        - 7687:7687
+      environment: 
+        - NEO4J_AUTH=neo4j/changeme
+        - NEO4J_dbms_connector_bolt_advertised__address='localhost:7687'
+        - NEO4J_dbms_connector_bolt_tls__level=DISABLED
+      networks:
+        - neo4j-network
