@@ -309,5 +309,50 @@ namespace NeoClient.Tests
                 entity.Should().BeNull();
             }
         }
+
+        [Fact]
+        public void DropNodeById()
+        {
+            using (var client = new NeoClient(URL, USER, PASSWORD, CONFIG))
+            {
+                client.Connect();
+
+                var user = client.Add(new User { Email = "kir.oktay@gmail.com", FirstName = "Oktay", LastName = "Kýr" });
+
+                bool result = client.Drop<User>(user.Uuid);
+
+                result.Should().BeTrue();
+            }
+        }
+
+        [Fact]
+        public void DropNodesByProperties()
+        {
+            using (var client = new NeoClient(URL, USER, PASSWORD, CONFIG))
+            {
+                client.Connect();
+
+                var userList = new List<User>();
+
+                for (int i = 0; i < 10; i++)
+                {
+                    userList.Add(new User
+                    {
+                        Email = "kir.oktay@gmail.com",
+                        FirstName = $"FakeFirstName{i}",
+                        LastName = $"FakeLastName{i}"
+                    });
+                }
+
+                var properties = new Dictionary<string, object>()
+                {
+                    { nameof(User.Email), "kir.oktay@gmail.com" },
+                };
+
+                bool result = client.DropByProperties<User>(properties);
+
+                result.Should().BeTrue();
+            }
+        }
     }
 }
