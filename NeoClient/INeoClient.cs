@@ -15,10 +15,6 @@ namespace NeoClient
             T entity, 
             string id, 
             bool fetchResult = false) where T : EntityBase, new();
-        T PartialUpdate<T>(
-            T entity, 
-            string id, 
-            bool fetchResult = false) where T : EntityBase, new();
         T Delete<T>(string uuid) where T : EntityBase, new();
         T GetByUuidWithRelatedNodes<T>(string uuid) where T : EntityBase, new();
         IList<T> GetAll<T>() where T : EntityBase, new();

@@ -1,5 +1,6 @@
 using FluentAssertions;
 using Neo4j.Driver.V1;
+using NeoClient.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -172,6 +173,7 @@ namespace NeoClient.Tests
                 client.Connect();
 
                 var user = client.Add(new User { Email = "kir.oktay@gmail.com", FirstName = "Oktay", LastName = "Kýr" });
+
                 bool result = client.AddLabel(user.Uuid, "Father");
 
                 result.Should().BeTrue();
@@ -189,6 +191,7 @@ namespace NeoClient.Tests
 
                 User entity = client.GetByUuidWithRelatedNodes<User>(user.Uuid);
 
+                entity.Should().NotBeNull();
                 user.Should().BeEquivalentTo(entity);
             }
         }
@@ -214,7 +217,96 @@ namespace NeoClient.Tests
 
                 IList<User> entities = client.GetAll<User>();
 
-                entities.Should().NotBeEmpty();
+                entities.Should().NotBeNullOrEmpty();
+            }
+        }
+
+        [Fact]
+        public void GetNodesBySingleProperty()
+        {
+            using (var client = new NeoClient(URL, USER, PASSWORD, CONFIG))
+            {
+                client.Connect();
+
+                var user = client.Add(new User { Email = "kir.oktay@gmail.com", FirstName = "Oktay", LastName = "Kýr" });
+
+                IList<User> entities = client.GetByProperty<User>(nameof(User.Email), user.Email);
+
+                entities.Should().NotBeNullOrEmpty();
+            }
+        }
+
+        [Fact]
+        public void GetNodesByMultipleProperties()
+        {
+            using (var client = new NeoClient(URL, USER, PASSWORD, CONFIG))
+            {
+                client.Connect();
+
+                var user = client.Add(new User { Email = "kir.oktay@gmail.com", FirstName = "Oktay", LastName = "Kýr" });
+
+                var properties = new Dictionary<string, object>()
+                {
+                    { nameof(User.Email), user.Email },
+                    { nameof(User.FirstName), user.FirstName },
+                    { nameof(User.LastName), user.LastName }
+                };
+
+                IList<User> entities = client.GetByProperties<User>(properties);
+
+                entities.Should().NotBeNullOrEmpty();
+            }
+        }
+
+        [Fact]
+        public void UpdateNode()
+        {
+            using (var client = new NeoClient(URL, USER, PASSWORD, CONFIG))
+            {
+                client.Connect();
+
+                var user = client.Add(new User { Email = "kir.oktay@gmail.com", FirstName = "Oktay", LastName = "Kýr" });
+
+                user.FirstName = "UpdatedName";
+
+                var updatedEntity = client.Update(user, user.Uuid);
+
+                updatedEntity.Should().BeNull();
+            }
+        }
+
+        [Fact]
+        public void UpdateNodeAndFetchResult()
+        {
+            using (var client = new NeoClient(URL, USER, PASSWORD, CONFIG))
+            {
+                client.Connect();
+
+                var user = client.Add(new User { Email = "kir.oktay@gmail.com", FirstName = "Oktay", LastName = "Kýr" });
+
+                user.FirstName = "UpdatedName";
+
+                var updatedEntity = client.Update(user, user.Uuid, fetchResult: true);
+
+                updatedEntity.Should().NotBeNull();
+            }
+        }
+
+        [Fact]
+        public void DeleteNode()
+        {
+            using (var client = new NeoClient(URL, USER, PASSWORD, CONFIG))
+            {
+                client.Connect();
+
+                var user = client.Add(new User { Email = "kir.oktay@gmail.com", FirstName = "Oktay", LastName = "Kýr" });
+
+                var deletedEntity = client.Delete<User>(user.Uuid);
+
+                var entity = client.GetByUuidWithRelatedNodes<User>(user.Uuid);
+
+                deletedEntity.IsDeleted.Should().BeTrue();
+                entity.Should().BeNull();
             }
         }
     }

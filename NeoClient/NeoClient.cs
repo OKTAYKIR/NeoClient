@@ -490,34 +490,6 @@ namespace NeoClient
             return result.Map<T>();
         }
 
-        public T PartialUpdate<T>(
-            T entity, 
-            string uuid, 
-            bool fetchResult = false) where T : EntityBase, new()
-        {
-            if (entity == null)
-                throw new ArgumentNullException("entity");
-
-            if (string.IsNullOrWhiteSpace(uuid))
-                throw new ArgumentNullException("uuid");
-
-            //entity.uuid = uuid;
-
-            dynamic properties = entity.AsPartialUpdateClause(PREFIX_QUERY_RESPONSE_KEY);
-            dynamic clause = properties.clause;
-            IDictionary<string, object> parameters = properties.parameters;
-
-            var query = new StringFormatter(QueryTemplates.TEMPLATE_UPDATE);
-            query.Add("@label", entity.Label);
-            query.Add("@Uuid", uuid);
-            query.Add("@clause", clause);
-            query.Add("@return", fetchResult ? string.Format("RETURN {0}", PREFIX_QUERY_RESPONSE_KEY) : string.Empty);
-
-            IStatementResult result = ExecuteQuery(query.ToString(), parameters);
-
-            return result.Map<T>();
-        }
-
         public T Delete<T>(string uuid) where T : EntityBase, new()
         {
             if (string.IsNullOrWhiteSpace(uuid))
@@ -632,7 +604,7 @@ namespace NeoClient
             {
                 var node = record[0].As<INode>().Properties;
 
-                var relatedNodes = FetchRelatedNode<T>(node["uuid"].ToString());
+                var relatedNodes = FetchRelatedNode<T>(node["Uuid"].ToString());
 
                 var nodes = node.Concat(relatedNodes).ToDictionary(x => x.Key, x => x.Value);
 
