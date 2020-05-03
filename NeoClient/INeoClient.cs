@@ -1,6 +1,7 @@
-﻿using NeoClient.Attributes;
-using NeoClient.TransactionManager;
+﻿using Neo4j.Driver.V1;
+using NeoClient.Attributes;
 using System.Collections.Generic;
+using ITransaction = NeoClient.TransactionManager.ITransaction;
 
 namespace NeoClient
 {
@@ -39,7 +40,7 @@ namespace NeoClient
         IList<T> RunCustomQuery<T>(
             string query, 
             Dictionary<string, object> parameters) where T : EntityBase, new();
-        IList<object> RunCustomQuery(
+        IStatementResult RunCustomQuery(
             string query, 
             Dictionary<string, object> parameters);
         //TODO: will be removed after isDeleted refactor

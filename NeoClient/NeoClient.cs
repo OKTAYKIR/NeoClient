@@ -708,25 +708,16 @@ namespace NeoClient
             return entites.Value;
         }
 
-        public IList<object> RunCustomQuery(
+        public IStatementResult RunCustomQuery(
             string query, 
             Dictionary<string, object> parameters = null)
         {
             if (string.IsNullOrWhiteSpace(query))
                 throw new ArgumentNullException("query");
 
-            var entites = new Lazy<List<object>>();
-
             IStatementResult result = ExecuteQuery(query, parameters);
 
-            foreach (IRecord record in result)
-            {
-                var node = record.Values.As<Dictionary<string, object>>();
-
-                entites.Value.Add(node);
-            }
-
-            return entites.Value;
+            return result;
         }
 
         public bool AddLabel(
