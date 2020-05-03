@@ -1,7 +1,7 @@
 using FluentAssertions;
 using Neo4j.Driver.V1;
 using NeoClient.Attributes;
-using NeoClient.Externsions;
+using NeoClient.Extensions;
 using NeoClient.Tests.Models;
 using System;
 using System.Collections.Generic;
