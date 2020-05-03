@@ -1,8 +1,9 @@
 ﻿using Neo4j.Driver.V1;
+using System;
 
 namespace NeoClient.Tests
 {
-    public abstract class IntegrationTestBase
+    public abstract class IntegrationTestBase : IDisposable
     {
         #region Variables
         internal const string URL = "bolt://localhost:7687";
@@ -13,13 +14,14 @@ namespace NeoClient.Tests
               .ToConfig();
         #endregion
 
-        protected virtual void Dispose(bool isDisposing)
+        public virtual void Dispose(bool isDisposing)
         {
             if (!isDisposing)
                 return;
 
             using (var client = new NeoClient(URL, USER, PASSWORD, CONFIG))
             {
+                client.Connect();
                 client.RunCustomQuery("MATCH (n) DETACH DELETE n");
             }
         }

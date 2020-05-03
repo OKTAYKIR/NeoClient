@@ -44,7 +44,7 @@ namespace NeoClient
             string query, 
             Dictionary<string, object> parameters);
         //TODO: will be removed after isDeleted refactor
-        bool DropByProperties<T>(Dictionary<string, object> props) where T : EntityBase, new();
+        int DropByProperties<T>(Dictionary<string, object> props) where T : EntityBase, new();
         bool AddLabel(string uuid, string newLabelName);
         void Connect();
         ITransaction BeginTransaction();

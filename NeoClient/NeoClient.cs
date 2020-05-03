@@ -258,7 +258,7 @@ namespace NeoClient
                 result = ExecuteQuery(query.ToString());
             }
 
-            return result.Any();
+            return result.Summary.Counters.RelationshipsCreated > 0;
         }
 
         public bool DropRelationshipBetweenTwoNodes(
@@ -284,9 +284,7 @@ namespace NeoClient
 
             IStatementResult result = ExecuteQuery(query.ToString());
 
-            var affectedNodes = result.First()[0].As<long>();
-
-            return affectedNodes == 1;
+            return result.Summary.Counters.RelationshipsDeleted > 0;
         }
 
         public bool MergeRelationship(
@@ -360,6 +358,9 @@ namespace NeoClient
             query.Add("@clause", hasRelationship ? clause : string.Empty);
 
             IStatementResult result = ExecuteQuery(query.ToString(), parameters.Value);
+
+            if(result.Summary.Counters.NodesCreated == 0)
+                throw new Exception("Node creation error!");
 
             return result.Map<T>();
         }
@@ -518,12 +519,10 @@ namespace NeoClient
 
             IStatementResult result = ExecuteQuery(query.ToString());
 
-            var affectedNodes = result.First()[0].As<long>();
-
-            return affectedNodes == 1;
+            return result.Summary.Counters.NodesDeleted == 1;
         }
 
-        public bool DropByProperties<T>(Dictionary<string, object> props) where T : EntityBase, new()
+        public int DropByProperties<T>(Dictionary<string, object> props) where T : EntityBase, new()
         {
             if (props == null || !props.Any())
                 throw new ArgumentNullException("props");
@@ -538,9 +537,7 @@ namespace NeoClient
 
             IStatementResult result = ExecuteQuery(query.ToString(), parameters);
 
-            var affectedNodes = result.FirstOrDefault()?[0].As<long>();
-
-            return affectedNodes == 1;
+            return result.Summary.Counters.NodesDeleted;
         }
 
         public IList<T> GetByProperty<T>(
@@ -735,6 +732,9 @@ namespace NeoClient
             query.Add("@label", labelName);
 
             IStatementResult result = ExecuteQuery(query.ToString());
+
+            if (result.Summary.Counters.LabelsAdded == 0)
+                throw new Exception("Label creation error!");
 
             return result.Summary.Counters.LabelsAdded == 1;
         }

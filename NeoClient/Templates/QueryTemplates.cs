@@ -12,9 +12,9 @@
 
         internal static string TEMPLATE_CREATE_RELATIONSHIP = @"MATCH(from{Uuid:""@uuidFrom""}),(to{Uuid:""@uuidTo""}) CREATE (from)@fromPartDirection[r:@relationshipName@clause]@toPartDirection(to) RETURN r";
         internal static string TEMPLATE_MERGE_RELATIONSHIP = @"MATCH(from{Uuid:""@uuidFrom""}),(to{Uuid:""@uuidTo""}) MERGE (from)@fromPartDirection[r:@relationshipName]@toPartDirection(to) RETURN r";
-        internal static string TEMPLATE_DROP_RELATIONSHIPBETWEENTWONODES = @"MATCH({Uuid:""@uuidIncoming""})@fromPartDirection[r:@relationshipName]@toPartDirection({Uuid:""@uuidOutgoing""}) DELETE r RETURN count(*)";
-        internal static string TEMPLATE_DROP = @"MATCH(n:@label{Uuid:""@Uuid""}) DETACH DELETE n RETURN count(*)";
-        internal static string TEMPLATE_DROP_BY_PROPERTIES = @"MATCH(n:@label{@clause}) WITH n LIMIT 1 DETACH DELETE n RETURN count(*)";
+        internal static string TEMPLATE_DROP_RELATIONSHIPBETWEENTWONODES = @"MATCH({Uuid:""@uuidIncoming""})@fromPartDirection[r:@relationshipName]@toPartDirection({Uuid:""@uuidOutgoing""}) DELETE r";
+        internal static string TEMPLATE_DROP = @"MATCH(n:@label{Uuid:""@Uuid""}) DETACH DELETE n";
+        internal static string TEMPLATE_DROP_BY_PROPERTIES = @"MATCH(n:@label{@clause}) DETACH DELETE n";
         internal static string TEMPLATE_ADD_LABEL = @"MATCH (n{Uuid:""@Uuid""}) SET n:@label";
     }
 }

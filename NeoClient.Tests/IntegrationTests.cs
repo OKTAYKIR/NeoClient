@@ -168,6 +168,8 @@ namespace NeoClient.Tests
                     });
                 }
 
+                userList.ForEach((user) => client.Add(user));
+
                 IList<User> entities = client.GetAll<User>();
 
                 entities.Should().NotBeNullOrEmpty();
@@ -302,9 +304,11 @@ namespace NeoClient.Tests
                     { nameof(User.Email), "kir.oktay@gmail.com" },
                 };
 
-                bool result = client.DropByProperties<User>(properties);
+                userList.ForEach((user) => client.Add(user));
 
-                result.Should().BeTrue();
+                int nodesDeleted = client.DropByProperties<User>(properties);
+
+                nodesDeleted.Should().Be(10);
             }
         }
 
