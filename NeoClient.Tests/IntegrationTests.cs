@@ -1,66 +1,16 @@
 using FluentAssertions;
-using Microsoft.VisualStudio.TestPlatform.ObjectModel.Utilities;
 using Neo4j.Driver.V1;
 using NeoClient.Attributes;
-using NeoClient.Extensions;
 using NeoClient.Externsions;
+using NeoClient.Tests.Models;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Xunit;
 
 namespace NeoClient.Tests
 {
-    //public abstract class BaseExample : IDisposable
-    //{
-    //    protected IDriver Driver { set; get; }
-    //    protected const string Uri = Neo4jDefaultInstallation.BoltUri;
-    //    protected const string User = Neo4jDefaultInstallation.User;
-    //    protected const string Password = Neo4jDefaultInstallation.Password;
-
-    //    protected BaseExample(ITestOutputHelper output, StandAloneIntegrationTestFixture fixture)
-    //    {
-    //        Output = output;
-    //        Driver = fixture.StandAlone.Driver;
-    //    }
-
-    //    protected virtual void Dispose(bool isDisposing)
-    //    {
-    //        if (!isDisposing)
-    //            return;
-
-    //        using (var session = Driver.Session())
-    //        {
-    //            session.Run("MATCH (n) DETACH DELETE n").Consume();
-    //        }
-    //    }
-
-    //    public void Dispose()
-    //    {
-    //        Dispose(true);
-    //    }
-    //}
-
-    public class User : EntityBase
+    public class IntegrationTests : IntegrationTestBase
     {
-        public User() : base(label: "User") { }
-
-        public string FirstName { get; set; }
-        public string LastName { get; set; }
-        public string Email { get; set; }
-    }
-
-    public class IntegrationTests
-    {
-        #region Variables
-        const string URL = "bolt://localhost:7687";
-        const string USER = "neo4j";
-        const string PASSWORD = "changeme";
-        static readonly Config CONFIG = Config.Builder
-              .WithEncryptionLevel(EncryptionLevel.None)
-              .ToConfig();
-        #endregion
-
         [Fact]
         public void ServiceUnavailableExceptionError()
         {
