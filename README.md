@@ -5,16 +5,16 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](#contributing)
 [![nuget](https://img.shields.io/nuget/v/NeoClient)](https://www.nuget.org/packages/NeoClient/)
 
-A Lightweight and simple micro object graph mapper (OGM) for [Neo4j](https://neo4j.com) which support BOLT protocol.
+A Lightweight and simple object graph mapper (OGM) for [Neo4j](https://neo4j.com) which support transactions and BOLT protocol.
 
-## Installation
+## :package: Installation
 NeoClient is available on [NuGet](https://www.nuget.org/packages/NeoClient/). 
 
 ```sh
 dotnet add package NeoClient
 ```
 
-## Usage
+## 🚀 Usage
 
 ### Creating Database Connection
 Optional you can pass authentication credential via the constructor.
@@ -192,15 +192,19 @@ IList<TNode> result = client.RunCustomQuery<TNode>(
 
 ## To Do
 * ~~Nuget package~~ 
-* Tests
-* Example Projects
+* Writing Tests
+* Supporting more functionalities
+* Creating example projects
 
-## Contributing
+## 🤝 Contributing
 1. Fork it ( https://github.com/OKTAYKIR/NeoClient/fork )
 2. Create your feature branch (`git checkout -b my-new-feature`)
 3. Commit your changes (`git commit -am 'Add some feature'`)
 4. Push to the branch (`git push origin my-new-feature`)
 5. Create a new Pull Request
 
-## Licence Information
+## Show your support
+Please ⭐️ this repository if this project helped you!
+
+## 📝 License
 MIT License
