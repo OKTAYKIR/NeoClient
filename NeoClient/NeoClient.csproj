@@ -7,8 +7,9 @@
     <RepositoryUrl>https://github.com/OKTAYKIR/NeoClient</RepositoryUrl>
     <PackageProjectUrl>https://github.com/OKTAYKIR/NeoClient</PackageProjectUrl>
     <PackageIcon>NeoClient_nuget.png</PackageIcon>
-    <Version>1.0.1</Version>
+    <Version>1.1</Version>
     <PackageTags>neo4j ogm bolt cyper graphdb graphdatabase nosql</PackageTags>
+    <Description>Lightweight OGM for Neo4j which support transactions and BOLT protocol.</Description>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -16,12 +17,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AutoMapper" Version="8.1.0" />
+    <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
     <PackageReference Include="Neo4j.Driver" Version="1.7.2" />
-    <PackageReference Include="NuGet.CommandLine" Version="5.5.1">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
   </ItemGroup>
 
   <ItemGroup>

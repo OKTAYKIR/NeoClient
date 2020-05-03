@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using Neo4j.Driver.V1;
+﻿using Neo4j.Driver.V1;
 using NeoClient.Attributes;
 using NeoClient.Extensions;
 using NeoClient.Templates;
@@ -26,30 +25,25 @@ namespace NeoClient
         private readonly bool StripHyphens;
         private IDriver Driver;
         private TransactionManager.ITransaction Transaction = null;
+        private readonly Config Config = null;
         #endregion
 
         #region Public variables
-        bool IsConnected
-        {
-            get
-            {
-                return Driver != null;
-            }
-        }
+        public bool IsConnected => Driver != null;
         #endregion
-
-        static NeoClient() => Mapper.Initialize(mapper => { });
 
         public NeoClient(
             string uri,
             string userName = null,
             string password = null,
+            Config config = null,
             bool strip_hyphens = false)
         {
             this.URI = uri;
             this.UserName = userName;
             this.Password = password;
             this.StripHyphens = strip_hyphens;
+            this.Config = config;
         }
 
         protected virtual void Dispose(bool disposing)
@@ -72,13 +66,10 @@ namespace NeoClient
             if (IsConnected)
                 return;
 
-            Config config = Config.Builder
-                .WithEncryptionLevel(EncryptionLevel.Encrypted)
-                .WithConnectionTimeout(TimeSpan.FromSeconds(30))
-                .ToConfig();
-
-            Driver = GraphDatabase.Driver(URI, (string.IsNullOrWhiteSpace(UserName) || string.IsNullOrWhiteSpace(Password)) ? null :
-                                                                                                                    AuthTokens.Basic(UserName, Password), config);
+            Driver = GraphDatabase.Driver(
+                URI, 
+                (string.IsNullOrWhiteSpace(UserName) || string.IsNullOrWhiteSpace(Password)) ? null : AuthTokens.Basic(UserName, Password), 
+                this.Config);
         }
 
         public TransactionManager.ITransaction BeginTransaction()
@@ -94,9 +85,12 @@ namespace NeoClient
         }
 
         private IStatementResult ExecuteQuery(
-            string query, 
-            object parameters = null)
+        string query,
+        object parameters = null)
         {
+            if (string.IsNullOrWhiteSpace(query))
+                throw new ArgumentNullException("query");
+
             if (Transaction == null)
             {
                 using (var session = Driver.Session())
@@ -116,9 +110,12 @@ namespace NeoClient
         }
 
         private IStatementResult ExecuteQuery(
-            string query, 
+            string query,
             IDictionary<string, object> parameters)
         {
+            if (string.IsNullOrWhiteSpace(query))
+                throw new ArgumentNullException("query");
+
             if (Transaction == null)
             {
                 using (var session = Driver.Session())
@@ -140,10 +137,13 @@ namespace NeoClient
         private IDictionary<string, object> FetchRelatedNode<T>(string uuid) 
             where T : EntityBase, new()
         {
+            if (string.IsNullOrWhiteSpace(uuid))
+                throw new ArgumentNullException("uuid");
+
             var query = new StringFormatter(QueryTemplates.TEMPLATE_GET_BY_PROPERTIES);
 
-            query.Add("@label", new T().GetLabelName());
-            query.Add("@clause", "uuid:$uuid");
+            query.Add("@label", new T().Label);
+            query.Add("@clause", "Uuid:$Uuid");
             query.Add("@result", PREFIX_QUERY_RESPONSE_KEY);
             query.Add("@relatedNode", string.Empty);
             query.Add("@relationship", string.Empty);
@@ -162,11 +162,11 @@ namespace NeoClient
                     string labelName;
                     if (prop.PropertyType.GetInterfaces().Contains(typeof(IEnumerable)))
                     {
-                        labelName = (Activator.CreateInstance(prop.PropertyType.GetGenericArguments()[0], null) as EntityBase).GetLabelName();
+                        labelName = (Activator.CreateInstance(prop.PropertyType.GetGenericArguments()[0], null) as EntityBase).Label;
                     }
                     else
                     {
-                        labelName = (Activator.CreateInstance(prop.PropertyType, null) as EntityBase).GetLabelName();
+                        labelName = (Activator.CreateInstance(prop.PropertyType, null) as EntityBase).Label;
                     }
 
                     string parameterRelatedNode = string.Format(@"(rNode:{0}{{isDeleted:false}})", labelName);
@@ -185,7 +185,7 @@ namespace NeoClient
                     query.Add("@relationship", parameterRelationship);
                     query.Add("@result", "rNode");
 
-                    IStatementResult resultRelatedNode = ExecuteQuery(query.ToString(), new { uuid });
+                    IStatementResult resultRelatedNode = ExecuteQuery(query.ToString(), new { UUid = uuid });
 
                     if (prop.PropertyType.GetInterfaces().Contains(typeof(IEnumerable)))
                     {
@@ -224,8 +224,14 @@ namespace NeoClient
             RelationshipAttribute relationshipAttribute,
             Dictionary<string, object> props = null)
         {
+            if (string.IsNullOrWhiteSpace(uuidFrom))
+                throw new ArgumentNullException("uuidFrom");
+
+            if (string.IsNullOrWhiteSpace(uuidTo))
+                throw new ArgumentNullException("uuidTo");
+
             if (relationshipAttribute == null)
-                return false;
+                throw new ArgumentNullException("relationshipAttribute");
 
             var query = new StringFormatter(QueryTemplates.TEMPLATE_CREATE_RELATIONSHIP);
             query.Add("@uuidFrom", uuidFrom);
@@ -251,7 +257,7 @@ namespace NeoClient
                 result = ExecuteQuery(query.ToString());
             }
 
-            return result.Any();
+            return result.Summary.Counters.RelationshipsCreated > 0;
         }
 
         public bool DropRelationshipBetweenTwoNodes(
@@ -259,8 +265,14 @@ namespace NeoClient
             string uuidOutgoing,
             RelationshipAttribute relationshipAttribute)
         {
+            if (string.IsNullOrWhiteSpace(uuidIncoming))
+                throw new ArgumentNullException("uuidIncoming");
+
+            if (string.IsNullOrWhiteSpace(uuidOutgoing))
+                throw new ArgumentNullException("uuidOutgoing");
+
             if (relationshipAttribute == null)
-                return false;
+                throw new ArgumentNullException("relationshipAttribute");
 
             var query = new StringFormatter(QueryTemplates.TEMPLATE_DROP_RELATIONSHIPBETWEENTWONODES);
             query.Add("@uuidIncoming", uuidIncoming);
@@ -271,9 +283,7 @@ namespace NeoClient
 
             IStatementResult result = ExecuteQuery(query.ToString());
 
-            var affectedNodes = result.First()[0].As<long>();
-
-            return affectedNodes == 1;
+            return result.Summary.Counters.RelationshipsDeleted > 0;
         }
 
         public bool MergeRelationship(
@@ -281,8 +291,14 @@ namespace NeoClient
             string uuidTo,
             RelationshipAttribute relationshipAttribute)
         {
+            if (string.IsNullOrWhiteSpace(uuidFrom))
+                throw new ArgumentNullException("uuidFrom");
+
+            if (string.IsNullOrWhiteSpace(uuidTo))
+                throw new ArgumentNullException("uuidTo");
+
             if (relationshipAttribute == null)
-                return false;
+                throw new ArgumentNullException("relationshipAttribute");
 
             var query = new StringFormatter(QueryTemplates.TEMPLATE_MERGE_RELATIONSHIP);
             query.Add("@uuidFrom", uuidFrom);
@@ -299,7 +315,7 @@ namespace NeoClient
         public T Add<T>(T entity) where T : EntityBase, new()
         {
             if (entity == null)
-                throw new ArgumentException("entity");
+                throw new ArgumentNullException("entity");
 
             StringFormatter match = null;
             string clause = null;
@@ -316,7 +332,7 @@ namespace NeoClient
                     prop.GetCustomAttribute(typeof(RelationshipAttribute), true) != null)
                     continue;
 
-                if (prop.Name.Equals("uuid", StringComparison.CurrentCultureIgnoreCase))
+                if (prop.Name.Equals("Uuid", StringComparison.CurrentCultureIgnoreCase))
                     continue;
 
                 parameters.Value[prop.Name] = prop.GetValue(entity, null);
@@ -331,20 +347,21 @@ namespace NeoClient
 
             string uuid = StripHyphens ? Guid.NewGuid().ToString("N") : Guid.NewGuid().ToString();
 
-            parameters.Value["uuid"] = uuid;
-            conditions.Value.Append(firstNode ? "uuid:$uuid" : ",uuid:$uuid");
+            parameters.Value["Uuid"] = uuid;
+            conditions.Value.Append(firstNode ? "Uuid:$Uuid" : ",Uuid:$Uuid");
 
             var query = new StringFormatter(QueryTemplates.TEMPLATE_CREATE);
             query.Add("@match", hasRelationship ? match.ToString() : string.Empty);
-            query.Add("@node", entity.GetLabelName());
+            query.Add("@node", entity.Label);
             query.Add("@conditions", conditions.Value.ToString());
             query.Add("@clause", hasRelationship ? clause : string.Empty);
 
             IStatementResult result = ExecuteQuery(query.ToString(), parameters.Value);
 
-            var retValue = Mapper.Map<IReadOnlyDictionary<string, object>, T>(result.SingleOrDefault()?[0].As<INode>().Properties);
+            if(result.Summary.Counters.NodesCreated == 0)
+                throw new Exception("Node creation error!");
 
-            return retValue;
+            return result.Map<T>();
         }
 
         public T Merge<T>(
@@ -352,8 +369,11 @@ namespace NeoClient
             T entityOnUpdate, 
             string where) where T : EntityBase, new()
         {
-            if (entityOnCreate == null || entityOnUpdate == null)
-                throw new ArgumentException("entity");
+            if (entityOnCreate == null)
+                throw new ArgumentNullException("entityOnCreate");
+
+            if (entityOnUpdate == null)
+                throw new ArgumentNullException("entityOnUpdate");
 
             bool firstNode = true;
 
@@ -369,7 +389,7 @@ namespace NeoClient
                     prop.GetCustomAttribute(typeof(RelationshipAttribute), true) != null)
                     continue;
 
-                if (prop.Name.Equals("uuid", StringComparison.CurrentCultureIgnoreCase))
+                if (prop.Name.Equals("Uuid", StringComparison.CurrentCultureIgnoreCase))
                 {
                     continue;
                 }
@@ -399,7 +419,7 @@ namespace NeoClient
                     prop.GetCustomAttribute(typeof(RelationshipAttribute), true) != null)
                     continue;
 
-                if (prop.Name.Equals("uuid", StringComparison.CurrentCultureIgnoreCase))
+                if (prop.Name.Equals("Uuid", StringComparison.CurrentCultureIgnoreCase))
                 {
                     continue;
                 }
@@ -424,152 +444,115 @@ namespace NeoClient
 
             string uuid = StripHyphens ? Guid.NewGuid().ToString("N") : Guid.NewGuid().ToString();
 
-            formattedSetClauseOnCreate.Add(string.Format("{0}uuid{0}", BIND_MARKER), "\"" + uuid + "\"");
+            formattedSetClauseOnCreate.Add(string.Format("{0}Uuid{0}", BIND_MARKER), "\"" + uuid + "\"");
 
-            setCaluseOnCreate.Value.Append(firstNode ? string.Format("n.uuid={0}uuid{0}", BIND_MARKER) : string.Format(",n.uuid={0}uuid{0}", BIND_MARKER));
+            setCaluseOnCreate.Value.Append(firstNode ? string.Format("n.Uuid={0}Uuid{0}", BIND_MARKER) : string.Format(",n.Uuid={0}Uuid{0}", BIND_MARKER));
 
             formattedSetClauseOnCreate.Str = setCaluseOnCreate.Value.ToString();
             formattedSetClauseOnUpdate.Str = setCaluseOnUpdate.Value.ToString();
 
             var query = new StringFormatter(QueryTemplates.TEMPLATE_MERGE);
-            query.Add("@node", entityOnCreate.GetLabelName());
+            query.Add("@node", entityOnCreate.Label);
             query.Add("@on_create_clause", string.Format("ON CREATE SET {0}", formattedSetClauseOnCreate.ToString()));
             query.Add("@on_match_clause", string.Format("ON MATCH SET {0}", formattedSetClauseOnUpdate.ToString()));
             query.Add("@conditions", where);
 
-            IStatementResult result = ExecuteQuery(query.ToString());
+            IStatementResult statementResult = ExecuteQuery(query.ToString());
 
-            var retValue = Mapper.Map<IReadOnlyDictionary<string, object>, T>(result.SingleOrDefault()?[0].As<INode>().Properties);
-
-            return retValue;
+            return statementResult.Map<T>();
         }
 
         public T Update<T>(
             T entity, 
-            string id, 
+            string uuid, 
             bool fetchResult = false) where T : EntityBase, new()
         {
             if (entity == null)
-                throw new ArgumentException("entity");
+                throw new ArgumentNullException("entity");
 
-            if (string.IsNullOrWhiteSpace(id))
-                throw new ArgumentException("uuid");
+            if (string.IsNullOrWhiteSpace(uuid))
+                throw new ArgumentNullException("uuid");
 
-            entity.uuid = id;
+            //entity.uuid = uuid;
 
             dynamic properties = entity.AsUpdateClause(PREFIX_QUERY_RESPONSE_KEY);
             dynamic clause = properties.clause;
             IDictionary<string, object> parameters = properties.parameters;
 
             var query = new StringFormatter(QueryTemplates.TEMPLATE_UPDATE);
-            query.Add("@label", entity.GetLabelName());
-            query.Add("@uuid", entity.uuid);
+            query.Add("@label", entity.Label);
+            query.Add("@Uuid", uuid);
             query.Add("@clause", clause);
             query.Add("@return", fetchResult ? string.Format("RETURN {0}", PREFIX_QUERY_RESPONSE_KEY) : string.Empty);
 
             IStatementResult result = ExecuteQuery(query.ToString(), parameters);
 
-            T model = Mapper.Map<IReadOnlyDictionary<string, object>, T>(result.FirstOrDefault()?[0].As<INode>().Properties);
-
-            return model;
-        }
-
-        public T PartialUpdate<T>(
-            T entity, 
-            string id, 
-            bool fetchResult = false) where T : EntityBase, new()
-        {
-            if (entity == null)
-                throw new ArgumentException("entity");
-
-            if (string.IsNullOrWhiteSpace(id))
-                throw new ArgumentException("uuid");
-
-            entity.uuid = id;
-
-            dynamic properties = entity.AsPartialUpdateClause(PREFIX_QUERY_RESPONSE_KEY);
-            dynamic clause = properties.clause;
-            IDictionary<string, object> parameters = properties.parameters;
-
-            var query = new StringFormatter(QueryTemplates.TEMPLATE_UPDATE);
-            query.Add("@label", entity.GetLabelName());
-            query.Add("@uuid", entity.uuid);
-            query.Add("@clause", clause);
-            query.Add("@return", fetchResult ? string.Format("RETURN {0}", PREFIX_QUERY_RESPONSE_KEY) : string.Empty);
-
-            IStatementResult result = ExecuteQuery(query.ToString(), parameters);
-
-            T model = Mapper.Map<IReadOnlyDictionary<string, object>, T>(result.FirstOrDefault()?[0].As<INode>().Properties);
-
-            return model;
+            return result.Map<T>();
         }
 
         public T Delete<T>(string uuid) where T : EntityBase, new()
         {
             if (string.IsNullOrWhiteSpace(uuid))
-                throw new ArgumentException("uuid");
+                throw new ArgumentNullException("uuid");
 
             T model = new T();
 
             var query = new StringFormatter(QueryTemplates.TEMPLATE_DELETE);
-            query.Add("@label", model.GetLabelName());
-            query.Add("@uuid", uuid);
+            query.Add("@label", model.Label);
+            query.Add("@Uuid", uuid);
             query.Add("@updatedAt", DateTime.UtcNow.ToTimeStamp());
 
             IStatementResult result = ExecuteQuery(query.ToString());
 
-            model = Mapper.Map<IReadOnlyDictionary<string, object>, T>(result.FirstOrDefault()?[0].As<INode>().Properties);
-
-            return model;
+            return result.Map<T>();
         }
 
         public bool Drop<T>(string uuid) where T : EntityBase, new()
         {
             if (string.IsNullOrWhiteSpace(uuid))
-                throw new ArgumentException("uuid");
+                throw new ArgumentNullException("uuid");
 
             var query = new StringFormatter(QueryTemplates.TEMPLATE_DROP);
-            query.Add("@label", new T().GetLabelName());
-            query.Add("@uuid", uuid);
+            query.Add("@label", new T().Label);
+            query.Add("@Uuid", uuid);
 
             IStatementResult result = ExecuteQuery(query.ToString());
 
-            var affectedNodes = result.First()[0].As<long>();
-
-            return affectedNodes == 1;
+            return result.Summary.Counters.NodesDeleted == 1;
         }
 
-        public bool DropByProperties<T>(Dictionary<string, object> props) where T : EntityBase, new()
+        public int DropByProperties<T>(Dictionary<string, object> props) where T : EntityBase, new()
         {
-            if (props == null)
-                throw new ArgumentException("properties");
+            if (props == null || !props.Any())
+                throw new ArgumentNullException("props");
 
             dynamic properties = props.AsQueryClause();
             dynamic clause = properties.clause;
             Dictionary<string, object> parameters = properties.parameters;
 
             var query = new StringFormatter(QueryTemplates.TEMPLATE_DROP_BY_PROPERTIES);
-            query.Add("@label", new T().GetLabelName());
+            query.Add("@label", new T().Label);
             query.Add("@clause", clause);
 
             IStatementResult result = ExecuteQuery(query.ToString(), parameters);
 
-            var affectedNodes = result.FirstOrDefault()?[0].As<long>();
-
-            return affectedNodes == 1;
+            return result.Summary.Counters.NodesDeleted;
         }
 
         public IList<T> GetByProperty<T>(
             string propertyName, 
             object propertValue) where T : EntityBase, new()
         {
-            if (string.IsNullOrWhiteSpace(propertyName) || propertValue == null)
-                throw new ArgumentException("propertyName or properyValue");
+            if (string.IsNullOrWhiteSpace(propertyName))
+                throw new ArgumentNullException("propertyName");
+
+            if (propertValue == null)
+                throw new ArgumentNullException("propertValue");
 
             var entites = new Lazy<List<T>>();
 
             var query = new StringFormatter(QueryTemplates.TEMPLATE_GET_BY_PROPERTY);
-            query.Add("@label", new T().GetLabelName());
+            query.Add("@label", new T().Label);
             query.Add("@property", propertyName);
             query.Add("@result", PREFIX_QUERY_RESPONSE_KEY);
             query.Add("@relatedNode", string.Empty);
@@ -579,13 +562,13 @@ namespace NeoClient
 
             foreach (IRecord record in result)
             {
-                IReadOnlyDictionary<string, object> node = record[0].As<INode>().Properties;
+                var node = record[0].As<INode>().Properties;
 
-                IDictionary<string, object> relatedNodes = FetchRelatedNode<T>(node["uuid"].ToString());
+                var relatedNodes = FetchRelatedNode<T>(node["Uuid"].ToString());
 
-                IDictionary<string, object> nodes = node.Concat(relatedNodes).ToDictionary(x => x.Key, x => x.Value);
+                var nodes = node.Concat(relatedNodes).ToDictionary(x => x.Key, x => x.Value);
 
-                T nodeObject = Mapper.Map<IDictionary<string, object>, T>(nodes);
+                T nodeObject = nodes.Map<T>();
 
                 entites.Value.Add(nodeObject);
             }
@@ -596,7 +579,7 @@ namespace NeoClient
         public IList<T> GetByProperties<T>(Dictionary<string, object> entity) where T : EntityBase, new()
         {
             if (entity == null)
-                throw new ArgumentException("properties");
+                throw new ArgumentNullException("entity");
 
             dynamic properties = entity.AsQueryClause();
             dynamic clause = properties.clause;
@@ -605,7 +588,7 @@ namespace NeoClient
             var entites = new Lazy<List<T>>();
 
             var query = new StringFormatter(QueryTemplates.TEMPLATE_GET_BY_PROPERTIES);
-            query.Add("@label", new T().GetLabelName());
+            query.Add("@label", new T().Label);
             query.Add("@clause", clause);
             query.Add("@result", PREFIX_QUERY_RESPONSE_KEY);
             query.Add("@relatedNode", string.Empty);
@@ -615,13 +598,13 @@ namespace NeoClient
 
             foreach (IRecord record in result)
             {
-                IReadOnlyDictionary<string, object> node = record[0].As<INode>().Properties;
+                var node = record[0].As<INode>().Properties;
 
-                IDictionary<string, object> relatedNodes = FetchRelatedNode<T>(node["uuid"].ToString());
+                var relatedNodes = FetchRelatedNode<T>(node["Uuid"].ToString());
 
-                IDictionary<string, object> nodes = node.Concat(relatedNodes).ToDictionary(x => x.Key, x => x.Value);
+                var nodes = node.Concat(relatedNodes).ToDictionary(x => x.Key, x => x.Value);
 
-                T nodeObject = Mapper.Map<IDictionary<string, object>, T>(nodes);
+                T nodeObject = nodes.Map<T>();
 
                 entites.Value.Add(nodeObject);
             }
@@ -632,11 +615,11 @@ namespace NeoClient
         public T GetByUuidWithRelatedNodes<T>(string uuid) where T : EntityBase, new()
         {
             if (string.IsNullOrWhiteSpace(uuid))
-                throw new ArgumentException("id");
+                throw new ArgumentNullException("uuid");
 
             var query = new StringFormatter(QueryTemplates.TEMPLATE_GET_BY_PROPERTY);
-            query.Add("@label", new T().GetLabelName());
-            query.Add("@property", "uuid");
+            query.Add("@label", new T().Label);
+            query.Add("@property", "Uuid");
             query.Add("@result", PREFIX_QUERY_RESPONSE_KEY);
             query.Add("@relatedNode", string.Empty);
             query.Add("@relationship", string.Empty);
@@ -646,9 +629,9 @@ namespace NeoClient
             IReadOnlyDictionary<string, object> node = result.FirstOrDefault()?[0].As<INode>().Properties;
 
             if (node == null)
-                return null;
+                return default;
 
-            IDictionary<string, object> nodes;
+            IReadOnlyDictionary<string, object> nodes;
 
             IDictionary<string, object> relatedNodes = FetchRelatedNode<T>(uuid);
 
@@ -661,7 +644,7 @@ namespace NeoClient
                 nodes = node.Concat(relatedNodes).ToDictionary(x => x.Key, x => x.Value);
             }
 
-            T entity = Mapper.Map<IDictionary<string, object>, T>(nodes);
+            T entity = nodes.Map<T>();
 
             return entity;
         }
@@ -671,12 +654,12 @@ namespace NeoClient
             var entites = new Lazy<List<T>>();
 
             var query = new StringFormatter(QueryTemplates.TEMPLATE_GET_ALL);
-            query.Add("@label", new T().GetLabelName());
+            query.Add("@label", new T().Label);
             query.Add("@result", PREFIX_QUERY_RESPONSE_KEY);
 
             var queryRelated = new StringFormatter(QueryTemplates.TEMPLATE_GET_BY_PROPERTY);
-            queryRelated.Add("@label", new T().GetLabelName());
-            queryRelated.Add("@property", "uuid");
+            queryRelated.Add("@label", new T().Label);
+            queryRelated.Add("@property", "Uuid");
 
             IStatementResult result = ExecuteQuery(query.ToString());
 
@@ -684,13 +667,13 @@ namespace NeoClient
             {
                 IReadOnlyDictionary<string, object> node = record[0].As<INode>().Properties;
 
-                string uuid = node["uuid"].ToString();
+                string uuid = node["Uuid"].ToString();
 
-                IDictionary<string, object> relatedNodes = FetchRelatedNode<T>(uuid);
+                var relatedNodes = FetchRelatedNode<T>(uuid);
 
-                IDictionary<string, object> nodes = node.Concat(relatedNodes).ToDictionary(x => x.Key, x => x.Value);
+                var nodes = node.Concat(relatedNodes).ToDictionary(x => x.Key, x => x.Value);
 
-                T nodeObject = Mapper.Map<IDictionary<string, object>, T>(nodes);
+                T nodeObject = nodes.Map<T>();
 
                 entites.Value.Add(nodeObject);
             }
@@ -700,8 +683,11 @@ namespace NeoClient
 
         public IList<T> RunCustomQuery<T>(
             string query, 
-            Dictionary<string, object> parameters) where T : EntityBase, new()
+            Dictionary<string, object> parameters = null) where T : EntityBase, new()
         {
+            if (string.IsNullOrWhiteSpace(query))
+                throw new ArgumentNullException("query");
+
             var entites = new Lazy<List<T>>();
 
             IStatementResult result = ExecuteQuery(query, parameters);
@@ -710,7 +696,7 @@ namespace NeoClient
             {
                 IReadOnlyDictionary<string, object> node = record[0].As<INode>().Properties;
 
-                T nodeObject = Mapper.Map<IReadOnlyDictionary<string, object>, T>(node);
+                T nodeObject = node.Map<T>();
 
                 entites.Value.Add(nodeObject);
             }
@@ -718,38 +704,45 @@ namespace NeoClient
             return entites.Value;
         }
 
-        public IList<object> RunCustomQuery(
+        public IStatementResult RunCustomQuery(
             string query, 
-            Dictionary<string, object> parameters)
+            Dictionary<string, object> parameters = null)
         {
-            var entites = new Lazy<List<object>>();
+            if (string.IsNullOrWhiteSpace(query))
+                throw new ArgumentNullException("query");
 
             IStatementResult result = ExecuteQuery(query, parameters);
 
-            foreach (IRecord record in result)
-            {
-                var node = record.Values.As<Dictionary<string, object>>();
-
-                entites.Value.Add(node);
-            }
-
-            return entites.Value;
+            return result;
         }
 
         public bool AddLabel(
             string uuid, 
             string labelName)
         {
-            if (string.IsNullOrWhiteSpace(uuid) || string.IsNullOrWhiteSpace(labelName))
-                return false;
+            if (string.IsNullOrWhiteSpace(uuid))
+                throw new ArgumentNullException("uuid");
+
+            if (string.IsNullOrWhiteSpace(labelName))
+                throw new ArgumentNullException("labelName");
 
             var query = new StringFormatter(QueryTemplates.TEMPLATE_ADD_LABEL);
-            query.Add("@uuid", uuid);
+            query.Add("@Uuid", uuid);
             query.Add("@label", labelName);
 
             IStatementResult result = ExecuteQuery(query.ToString());
 
-            return result.Any();
+            if (result.Summary.Counters.LabelsAdded == 0)
+                throw new Exception("Label creation error!");
+
+            return result.Summary.Counters.LabelsAdded == 1;
+        }
+
+        public bool Ping()
+        {
+            IStatementResult result = ExecuteQuery("RETURN 1");
+
+            return result.FirstOrDefault()?[0].As<int>() == 1;
         }
 
         #region Commented Methods
@@ -760,8 +753,8 @@ namespace NeoClient
         //        throw new ArgumentException("id");
 
         //    var entities = new List<T2>();
-        //    string labelName = new T().GetLabelName();
-        //    string labelNameRelatedNode = new T2().GetLabelName();
+        //    string labelName = new T().Label;
+        //    string labelNameRelatedNode = new T2().Label;
 
         //    IStatementResult result = ExecuteQuery(string.Format(@"MATCH ({0})--({1}) WHERE ID({0}) = $id RETURN {1}", labelName, labelNameRelatedNode), new { id });
 
@@ -780,7 +773,7 @@ namespace NeoClient
         //{
         //    IDictionary<string, object> entites = new Dictionary<string, object>();
 
-        //    IStatementResult result = ExecuteQuery(string.Format(@"MATCH (n:{0}) OPTIONAL MATCH (n)-[r:" + relName + "]->(r:{1}) RETURN n,r", new T().GetLabelName(), new T2().GetLabelName()));
+        //    IStatementResult result = ExecuteQuery(string.Format(@"MATCH (n:{0}) OPTIONAL MATCH (n)-[r:" + relName + "]->(r:{1}) RETURN n,r", new T().Label, new T2().Label));
 
         //    foreach (IRecord record in result)
         //    {
