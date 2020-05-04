@@ -198,6 +198,13 @@ string cypherQuery = @"MATCH (n:User) RETURN n";
 
 IList<User> result = client.RunCustomQuery<User>(query: cypherQuery);
 ```
+## Integration Tests
+NeoClient has several tests that verify that its ability to use the system it integrates with correctly.
+
+There's a [docker-compose](NeoClient.Tests/resources/docker-compose.yml) file and you can use the following command to launch Neo4j container for running the integration tests.
+```
+$ docker-compose up -d
+```
 
 ## Transactions
 
