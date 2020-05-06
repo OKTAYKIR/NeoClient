@@ -21,17 +21,17 @@ jobs:
     steps:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - uses: actions/checkout@v2
-    
-    - name: .NetFramework Action Template
-      uses: auycro/netframework-action-template@v0.0.2
-    
+
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 3.1.101
       
-    - name: Build with dotnet
-      run: dotnet build --configuration Release
+    - name: NeoClient Build -f netstandard2.0
+      run: dotnet build NeoClient/NeoClient.csproj --configuration Release -f netstandard2.0
+    
+    - name: NeoClient Build -f netstandard2.1
+      run: dotnet build NeoClient/NeoClient.csproj --configuration Release -f netstandard2.1
         
-    - name: sonar-scanner
-      uses: Warchant/setup-sonar-scanner@v1
+    - name: NeoClient Build -f netstandard2.1
+      run: dotnet build NeoClient/NeoClient.csproj --configuration Release -f net472
