@@ -16,7 +16,7 @@ jobs:
   build:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
-
+          
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
@@ -27,8 +27,11 @@ jobs:
       with:
         dotnet-version: 3.1.101
       
-    - name: Build with dotnet
-      run: dotnet build --configuration Release
+    - name: NeoClient Build -f netstandard2.0
+      run: dotnet build NeoClient/NeoClient.csproj --configuration Release -f netstandard2.0
+    
+    - name: NeoClient Build -f netstandard2.1
+      run: dotnet build NeoClient/NeoClient.csproj --configuration Release -f netstandard2.1
         
-    - name: sonar-scanner
-      uses: Warchant/setup-sonar-scanner@v1
+    - name: NeoClient.Tests Build -f netcoreapp3.1
+      run: dotnet build NeoClient.Tests/NeoClient.Tests.csproj --configuration Release -f netcoreapp3.1
