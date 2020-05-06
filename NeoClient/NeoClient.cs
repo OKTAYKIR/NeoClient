@@ -1,4 +1,5 @@
-﻿using Neo4j.Driver.V1;
+﻿using AutoMapper;
+using Neo4j.Driver.V1;
 using NeoClient.Attributes;
 using NeoClient.Extensions;
 using NeoClient.Templates;
@@ -13,10 +14,10 @@ using System.Text;
 
 namespace NeoClient
 {
-    public class NeoClient : INeoClient, IDisposable
+    public class NeoClient : INeoClient 
     {
-        #region Private variables
-        private static readonly string PREFIX_QUERY_RESPONSE_KEY = "n";
+#region Private variables
+        public static readonly string TAG = "n";
         private static readonly string BIND_MARKER = "|";
 
         private readonly string URI;
@@ -25,18 +26,25 @@ namespace NeoClient
         private readonly bool StripHyphens;
         private IDriver Driver;
         private TransactionManager.ITransaction Transaction = null;
-        private readonly Config Config = null;
-        #endregion
 
-        #region Public variables
+//#if NET45
+//#else
+        private readonly Config Config = null;
+//#endif
+#endregion
+
+#region Public variables
         public bool IsConnected => Driver != null;
-        #endregion
+#endregion
 
         public NeoClient(
             string uri,
             string userName = null,
             string password = null,
+//#if NET45
+//#else
             Config config = null,
+//#endif
             bool strip_hyphens = false)
         {
             this.URI = uri;
@@ -44,6 +52,8 @@ namespace NeoClient
             this.Password = password;
             this.StripHyphens = strip_hyphens;
             this.Config = config;
+
+            Mapper.Initialize(mapper => { });
         }
 
         protected virtual void Dispose(bool disposing)
@@ -144,7 +154,7 @@ namespace NeoClient
 
             query.Add("@label", new T().Label);
             query.Add("@clause", "Uuid:$Uuid");
-            query.Add("@result", PREFIX_QUERY_RESPONSE_KEY);
+            query.Add("@result", TAG);
             query.Add("@relatedNode", string.Empty);
             query.Add("@relationship", string.Empty);
 
@@ -169,7 +179,7 @@ namespace NeoClient
                         labelName = (Activator.CreateInstance(prop.PropertyType, null) as EntityBase).Label;
                     }
 
-                    string parameterRelatedNode = string.Format(@"(rNode:{0}{{isDeleted:false}})", labelName);
+                    string parameterRelatedNode = string.Format(@"(rNode:{0}{{IsDeleted:false}})", labelName);
 
                     string parameterRelationship = string.Format(
                         @"{0}[r:{1}]{2}",
@@ -185,7 +195,7 @@ namespace NeoClient
                     query.Add("@relationship", parameterRelationship);
                     query.Add("@result", "rNode");
 
-                    IStatementResult resultRelatedNode = ExecuteQuery(query.ToString(), new { UUid = uuid });
+                    IStatementResult resultRelatedNode = ExecuteQuery(query.ToString(), new { Uuid = uuid });
 
                     if (prop.PropertyType.GetInterfaces().Contains(typeof(IEnumerable)))
                     {
@@ -475,7 +485,7 @@ namespace NeoClient
 
             //entity.uuid = uuid;
 
-            dynamic properties = entity.AsUpdateClause(PREFIX_QUERY_RESPONSE_KEY);
+            dynamic properties = entity.AsUpdateClause(TAG);
             dynamic clause = properties.clause;
             IDictionary<string, object> parameters = properties.parameters;
 
@@ -483,7 +493,7 @@ namespace NeoClient
             query.Add("@label", entity.Label);
             query.Add("@Uuid", uuid);
             query.Add("@clause", clause);
-            query.Add("@return", fetchResult ? string.Format("RETURN {0}", PREFIX_QUERY_RESPONSE_KEY) : string.Empty);
+            query.Add("@return", fetchResult ? string.Format("RETURN {0}", TAG) : string.Empty);
 
             IStatementResult result = ExecuteQuery(query.ToString(), parameters);
 
@@ -554,7 +564,7 @@ namespace NeoClient
             var query = new StringFormatter(QueryTemplates.TEMPLATE_GET_BY_PROPERTY);
             query.Add("@label", new T().Label);
             query.Add("@property", propertyName);
-            query.Add("@result", PREFIX_QUERY_RESPONSE_KEY);
+            query.Add("@result", TAG);
             query.Add("@relatedNode", string.Empty);
             query.Add("@relationship", string.Empty);
 
@@ -590,7 +600,7 @@ namespace NeoClient
             var query = new StringFormatter(QueryTemplates.TEMPLATE_GET_BY_PROPERTIES);
             query.Add("@label", new T().Label);
             query.Add("@clause", clause);
-            query.Add("@result", PREFIX_QUERY_RESPONSE_KEY);
+            query.Add("@result", TAG);
             query.Add("@relatedNode", string.Empty);
             query.Add("@relationship", string.Empty);
 
@@ -604,7 +614,7 @@ namespace NeoClient
 
                 var nodes = node.Concat(relatedNodes).ToDictionary(x => x.Key, x => x.Value);
 
-                T nodeObject = nodes.Map<T>();
+                T nodeObject = Mapper.Map<T>(nodes);
 
                 entites.Value.Add(nodeObject);
             }
@@ -620,7 +630,7 @@ namespace NeoClient
             var query = new StringFormatter(QueryTemplates.TEMPLATE_GET_BY_PROPERTY);
             query.Add("@label", new T().Label);
             query.Add("@property", "Uuid");
-            query.Add("@result", PREFIX_QUERY_RESPONSE_KEY);
+            query.Add("@result", TAG);
             query.Add("@relatedNode", string.Empty);
             query.Add("@relationship", string.Empty);
 
@@ -644,22 +654,19 @@ namespace NeoClient
                 nodes = node.Concat(relatedNodes).ToDictionary(x => x.Key, x => x.Value);
             }
 
-            T entity = nodes.Map<T>();
+            T entity = Mapper.Map<T>(nodes);
 
             return entity;
         }
 
-        public IList<T> GetAll<T>() where T : EntityBase, new()
+        public IList<T> GetAll<T>(string where = default) where T : EntityBase, new()
         {
             var entites = new Lazy<List<T>>();
 
             var query = new StringFormatter(QueryTemplates.TEMPLATE_GET_ALL);
             query.Add("@label", new T().Label);
-            query.Add("@result", PREFIX_QUERY_RESPONSE_KEY);
-
-            var queryRelated = new StringFormatter(QueryTemplates.TEMPLATE_GET_BY_PROPERTY);
-            queryRelated.Add("@label", new T().Label);
-            queryRelated.Add("@property", "Uuid");
+            query.Add("@result", TAG);
+            query.Add("@where", string.IsNullOrWhiteSpace(where) ? string.Empty : $"WHERE {where}");
 
             IStatementResult result = ExecuteQuery(query.ToString());
 
@@ -673,7 +680,7 @@ namespace NeoClient
 
                 var nodes = node.Concat(relatedNodes).ToDictionary(x => x.Key, x => x.Value);
 
-                T nodeObject = nodes.Map<T>();
+                T nodeObject = Mapper.Map<T>(nodes);
 
                 entites.Value.Add(nodeObject);
             }
@@ -683,7 +690,7 @@ namespace NeoClient
 
         public IList<T> RunCustomQuery<T>(
             string query, 
-            Dictionary<string, object> parameters = null) where T : EntityBase, new()
+            Dictionary<string, object> parameters = null) where T : class, new()
         {
             if (string.IsNullOrWhiteSpace(query))
                 throw new ArgumentNullException("query");
@@ -694,9 +701,7 @@ namespace NeoClient
 
             foreach (IRecord record in result)
             {
-                IReadOnlyDictionary<string, object> node = record[0].As<INode>().Properties;
-
-                T nodeObject = node.Map<T>();
+                T nodeObject = Mapper.Map<IReadOnlyDictionary<string, object>, T>(record.Values);
 
                 entites.Value.Add(nodeObject);
             }
@@ -745,7 +750,7 @@ namespace NeoClient
             return result.FirstOrDefault()?[0].As<int>() == 1;
         }
 
-        #region Commented Methods
+#region Commented Methods
         //public List<T2> GetRelatedNodesByID<T, T2>(int id) where T : EntityBase, new()
         //                                                   where T2 : EntityBase, new()
         //{
@@ -784,6 +789,6 @@ namespace NeoClient
 
         //    return entites;
         //}
-        #endregion
+#endregion
     }
 }

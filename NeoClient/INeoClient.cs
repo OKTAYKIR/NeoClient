@@ -1,11 +1,12 @@
 ﻿using Neo4j.Driver.V1;
 using NeoClient.Attributes;
+using System;
 using System.Collections.Generic;
 using ITransaction = NeoClient.TransactionManager.ITransaction;
 
 namespace NeoClient
 {
-    public interface INeoClient
+    public interface INeoClient : IDisposable
     {
         IList<T> GetByProperty<T>(
             string propertyName, 
@@ -18,7 +19,7 @@ namespace NeoClient
             bool fetchResult = false) where T : EntityBase, new();
         T Delete<T>(string uuid) where T : EntityBase, new();
         T GetByUuidWithRelatedNodes<T>(string uuid) where T : EntityBase, new();
-        IList<T> GetAll<T>() where T : EntityBase, new();
+        IList<T> GetAll<T>(string where = default) where T : EntityBase, new();
         bool CreateRelationship(
             string uuidFrom,
             string uuidTo,
@@ -39,10 +40,10 @@ namespace NeoClient
             RelationshipAttribute relationshipAttribute);
         IList<T> RunCustomQuery<T>(
             string query, 
-            Dictionary<string, object> parameters) where T : EntityBase, new();
+            Dictionary<string, object> parameters) where T : class, new();
         IStatementResult RunCustomQuery(
             string query, 
-            Dictionary<string, object> parameters);
+            Dictionary<string, object> parameters = null);
         //TODO: will be removed after isDeleted refactor
         int DropByProperties<T>(Dictionary<string, object> props) where T : EntityBase, new();
         bool AddLabel(string uuid, string newLabelName);

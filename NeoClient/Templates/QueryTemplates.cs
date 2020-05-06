@@ -4,7 +4,7 @@
     {
         internal static string TEMPLATE_CREATE = @"@match CREATE(n:@node{@conditions}) @clause RETURN n";
         internal static string TEMPLATE_MERGE = @"MERGE (n:@node{@conditions}) @on_create_clause @on_match_clause RETURN n";
-        internal static string TEMPLATE_GET_ALL = @"MATCH (n:@label{IsDeleted:false}) RETURN @result";
+        internal static string TEMPLATE_GET_ALL = @"MATCH (n:@label{IsDeleted:false}) @where RETURN @result";
         internal static string TEMPLATE_GET_BY_PROPERTY = @"MATCH (n:@label{@property:$value,IsDeleted:false})@relationship@relatedNode RETURN @result";
         internal static string TEMPLATE_GET_BY_PROPERTIES = @"MATCH (n:@label{@clause,IsDeleted:false})@relationship@relatedNode RETURN @result";
         internal static string TEMPLATE_DELETE = @"MATCH(n:@label{Uuid:""@Uuid"",IsDeleted:false}) SET n.updatedAt=@updatedAt,n.IsDeleted=true RETURN n";

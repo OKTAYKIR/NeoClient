@@ -19,7 +19,7 @@ namespace NeoClient.Tests
             if (!isDisposing)
                 return;
 
-            using (var client = new NeoClient(URL, USER, PASSWORD, CONFIG))
+            using (INeoClient client = new NeoClient(URL, USER, PASSWORD, CONFIG))
             {
                 client.Connect();
                 client.RunCustomQuery("MATCH (n) DETACH DELETE n");
