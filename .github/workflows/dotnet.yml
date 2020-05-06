@@ -24,3 +24,14 @@ jobs:
     
     - name: .NetFramework Action Template
       uses: auycro/netframework-action-template@v0.0.2
+    
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 3.1.101
+      
+    - name: Build with dotnet
+      run: dotnet build --configuration Release
+        
+    - name: sonar-scanner
+      uses: Warchant/setup-sonar-scanner@v1
