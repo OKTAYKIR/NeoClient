@@ -211,10 +211,10 @@ $ docker-compose up -d
 ## Transactions
 
 ## To Do
-* ~~Nuget package~~ 
-* ~~Integration Tests~~
-* ~~Creating example projects~~
-* Supporting more functionalities
+- [x] Nuget package
+- [x] Integration Tests
+- [x] Creating example projects
+- [ ] Supporting more functionalities
 
 ## 🤝 Contributing
 1. Fork it ( https://github.com/OKTAYKIR/NeoClient/fork )
