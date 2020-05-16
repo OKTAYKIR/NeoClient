@@ -22,6 +22,9 @@ jobs:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - uses: actions/checkout@v2
 
+    - name: Build the stack
+      run: docker-compose up -d
+      
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
@@ -35,9 +38,6 @@ jobs:
         
     - name: NeoClient.Tests Build -f netcoreapp3.1
       run: dotnet build NeoClient.Tests/NeoClient.Tests.csproj --configuration Release -f netcoreapp3.1
-      
-    - name: Build the stack
-      run: docker-compose up -d
     
     - name: Check running containers
       run: docker ps -a
