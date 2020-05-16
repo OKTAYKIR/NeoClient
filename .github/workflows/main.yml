@@ -37,8 +37,13 @@ jobs:
       run: dotnet build NeoClient.Tests/NeoClient.Tests.csproj --configuration Release -f netcoreapp3.1
     
     - name: Build the stack
-      run: docker-compose -f NeoClient.Tests/resources/docker-compose.yml up
-
+      run: docker-compose -f NeoClient.Tests/resources/docker-compose.yml up -d
+   
+    - name: Sleep
+      uses: jakejarvis/wait-action@master
+      with:
+        time: '5s'
+        
     - name: Check running containers
       run: docker ps -a
       
