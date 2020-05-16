@@ -43,7 +43,7 @@ jobs:
       run: docker ps -a
       
     - name: Check logs
-      run: docker-compose logs
+      run: docker-compose -f logs NeoClient.Tests/resources/docker-compose.yml
       
     - name: Tests
       run: dotnet test NeoClient.Tests/NeoClient.Tests.csproj --configuration Release
