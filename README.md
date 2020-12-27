@@ -227,4 +227,4 @@ $ docker-compose up -d
 Please ⭐️ this repository if this project helped you!
 
 ## 📝 License
-MIT License
+[MIT license](http://www.opensource.org/licenses/Mit)
