@@ -2,6 +2,8 @@
 <img src="icon/NeoClient.png" width="440" alt="NeoClient logo"/>
 
 # NeoClient
+![Hits](https://hitcounter.pythonanywhere.com/count/tag.svg?url=https://github.com/OKTAYKIR/NeoClient)
+![GitHub issues](https://img.shields.io/github/issues/OKTAYKIR/NeoClient)
 ![Build Status](https://github.com/OKTAYKIR/NeoClient/workflows/CI/badge.svg?branch=master) 
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](#contributing)
 [![nuget](https://img.shields.io/nuget/v/NeoClient)](https://www.nuget.org/packages/NeoClient/)
@@ -222,6 +224,9 @@ $ docker-compose up -d
 3. Commit your changes (`git commit -am 'Add some feature'`)
 4. Push to the branch (`git push origin my-new-feature`)
 5. Create a new Pull Request
+
+## ✨ Contributors
+![GitHub Contributors Image](https://contrib.rocks/image?repo=OKTAYKIR/NeoClient)
 
 ## Show your support
 Please ⭐️ this repository if this project helped you!
