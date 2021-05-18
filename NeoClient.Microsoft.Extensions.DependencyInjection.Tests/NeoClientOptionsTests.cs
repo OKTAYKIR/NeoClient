@@ -1,8 +1,6 @@
-using Microsoft.Extensions.DependencyInjection;
 using System;
 using FluentAssertions;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Options;
 using NeoClient.Microsoft.Extensions.DependencyInjection.Options;
 using Xunit;
 
